@@ -12,8 +12,9 @@ export async function POST(req: NextRequest) {
     const payment = await createPayment({ email, amount, subaccount });
 
     return NextResponse.json(payment);
-  } catch (error) {
-    console.error("Payment initialization error:", error);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Payment initialization error:", message);
     return NextResponse.json({ error: "Payment initialization failed" }, { status: 500 });
   }
 }

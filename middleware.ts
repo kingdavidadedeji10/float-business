@@ -4,12 +4,15 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname.startsWith("/dashboard")) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    // Check for any Supabase auth session cookie (covers multiple naming conventions)
+    const cookies = req.cookies.getAll();
+    const hasAuthCookie = cookies.some(
+      (cookie) =>
+        cookie.name.startsWith("sb-") &&
+        (cookie.name.endsWith("-auth-token") || cookie.name === "sb-access-token")
+    );
 
-    const authToken = req.cookies.get("sb-access-token")?.value ||
-      req.cookies.get(`sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`)?.value;
-
-    if (!authToken) {
+    if (!hasAuthCookie) {
       const loginUrl = new URL("/auth/login", req.url);
       loginUrl.searchParams.set("redirectTo", pathname);
       return NextResponse.redirect(loginUrl);
