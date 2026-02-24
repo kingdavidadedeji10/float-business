@@ -3,10 +3,11 @@ import { createServerClient } from "@/lib/supabase";
 import ThemeRenderer from "@/components/store/ThemeRenderer";
 import { notFound } from "next/navigation";
 
-export default async function StorePage({ params }: { params: { slug: string } }) {
+export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   let store;
   try {
-    store = await fetchStoreBySlug(params.slug);
+    store = await fetchStoreBySlug(slug);
   } catch {
     notFound();
   }
