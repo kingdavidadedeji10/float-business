@@ -1,12 +1,23 @@
+"use client";
+
+import { useState } from "react";
 import { Store } from "@/types/store";
 import Link from "next/link";
+import { ConnectBankModal } from "@/components/dashboard/ConnectBankModal";
 
 interface StoreCardProps {
   store: Store;
+  onBankConnected?: (storeId: string, accountName: string, subaccountCode: string) => void;
 }
 
-export default function StoreCard({ store }: StoreCardProps) {
+export default function StoreCard({ store, onBankConnected }: StoreCardProps) {
   const isPaymentConnected = !!store.subaccount_code;
+  const [modalOpen, setModalOpen] = useState(false);
+
+  function handleSuccess(accountName: string, subaccountCode: string) {
+    setModalOpen(false);
+    if (onBankConnected) onBankConnected(store.id, accountName, subaccountCode);
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition">
@@ -21,19 +32,24 @@ export default function StoreCard({ store }: StoreCardProps) {
       </div>
       <div className="mb-3">
         {isPaymentConnected ? (
-          <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-            Payment Connected
-          </span>
+          <div>
+            <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+              ✓ Bank Connected
+            </span>
+            {store.account_name && (
+              <p className="text-xs text-gray-500 mt-1">{store.account_name} · {store.bank_name}</p>
+            )}
+          </div>
         ) : (
-          <Link
-            href={`/dashboard/stores/${store.id}/settings`}
+          <button
+            onClick={() => setModalOpen(true)}
             className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full hover:bg-yellow-200 transition"
-            title="Set up Paystack to receive payments"
+            title="Connect your bank to receive payments"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>
-            Setup Required
-          </Link>
+            Connect Bank
+          </button>
         )}
       </div>
       <div className="flex gap-2 mt-4">
@@ -67,6 +83,14 @@ export default function StoreCard({ store }: StoreCardProps) {
           </svg>
         </Link>
       </div>
+
+      <ConnectBankModal
+        storeId={store.id}
+        storeName={store.name}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }
