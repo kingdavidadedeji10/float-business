@@ -1,27 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
 
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  if (pathname.startsWith("/dashboard")) {
-    // Check for any Supabase auth session cookie (covers multiple naming conventions)
-    const cookies = req.cookies.getAll();
-    const hasAuthCookie = cookies.some(
-      (cookie) =>
-        cookie.name.startsWith("sb-") &&
-        (cookie.name.endsWith("-auth-token") || cookie.name === "sb-access-token")
-    );
-
-    if (!hasAuthCookie) {
-      const loginUrl = new URL("/auth/login", req.url);
-      loginUrl.searchParams.set("redirectTo", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  return NextResponse.next();
+export async function middleware(request: NextRequest) {
+  return await updateSession(request)
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
-};
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
