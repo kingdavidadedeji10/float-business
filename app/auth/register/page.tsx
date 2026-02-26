@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -10,19 +10,30 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const supabase = createClient();
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    try {
+      const { error } = await supabase.auth.signUp({ email, password });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push("/dashboard");
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess("Account created! Redirecting...");
+        router.refresh();
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
     }
 
     setLoading(false);
@@ -56,7 +67,19 @@ export default function RegisterPage() {
               placeholder="••••••••"
             />
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+              {success}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
