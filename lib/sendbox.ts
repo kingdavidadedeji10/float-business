@@ -3,19 +3,17 @@ import { Address, SendboxQuoteResponse, SendboxBookingResponse } from '@/types/d
 const SENDBOX_API_URL = process.env.SENDBOX_API_URL || 'https://api.sendbox.co';
 const SENDBOX_API_KEY = process.env.SENDBOX_API_KEY;
 
-function determineDeliveryMethod(
+export function determineDeliveryMethod(
   sizeCategory: 'small' | 'medium' | 'large' | string,
   originState: string,
   destinationState: string
-): 'motorcycle' | 'van' | 'truck' {
+): 'motorcycle' | 'van' {
   const isInterstate = originState !== destinationState;
 
   if (sizeCategory === 'small' && !isInterstate) {
     return 'motorcycle';
-  } else if (sizeCategory === 'large' || isInterstate) {
-    return 'van';
   } else {
-    return 'motorcycle';
+    return 'van';
   }
 }
 

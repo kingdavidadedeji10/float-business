@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { bookSendboxShipment } from "@/lib/sendbox";
+import { bookSendboxShipment, determineDeliveryMethod } from "@/lib/sendbox";
 import { createDelivery } from "@/lib/helpers";
 
 export async function POST(req: NextRequest) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       tracking_code: shipment.tracking_code,
       courier_name: shipment.courier_name,
       delivery_type: "delivery",
-      delivery_method: size_category === "large" || origin_address.state !== destination_address.state ? "van" : "motorcycle",
+      delivery_method: determineDeliveryMethod(size_category, origin_address.state, destination_address.state),
       origin_address,
       destination_address,
       estimated_cost: 0,

@@ -45,4 +45,4 @@ FOR SELECT USING (true);
 
 -- Policy: Service role can manage deliveries
 CREATE POLICY "Service role can manage deliveries" ON deliveries
-FOR ALL USING (true);
+FOR ALL USING (auth.role() = 'service_role');

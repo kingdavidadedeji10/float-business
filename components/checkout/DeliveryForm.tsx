@@ -46,6 +46,11 @@ export default function DeliveryForm({
       return;
     }
 
+    if (!weight || !sizeCategory) {
+      setError("Product weight and size category are required for delivery calculation");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setQuotes([]);
@@ -58,8 +63,8 @@ export default function DeliveryForm({
         body: JSON.stringify({
           origin_address: originAddress,
           destination_address: address,
-          weight: weight ?? 1,
-          size_category: sizeCategory ?? "small",
+          weight,
+          size_category: sizeCategory,
         }),
       });
 
