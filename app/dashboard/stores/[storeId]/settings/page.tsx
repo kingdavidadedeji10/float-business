@@ -5,16 +5,13 @@ import { supabase } from "@/lib/supabase";
 import { Store } from "@/types/store";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import BankDetailsForm from "@/components/dashboard/BankDetailsForm";
 
 export default function SettingsPage() {
   const params = useParams();
   const storeId = params.storeId as string;
   const [store, setStore] = useState<Store | null>(null);
-  const [subaccountCode, setSubaccountCode] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     async function loadStore() {
@@ -26,7 +23,6 @@ export default function SettingsPage() {
 
       if (data) {
         setStore(data);
-        setSubaccountCode(data.subaccount_code || "");
       }
       setLoading(false);
     }
@@ -34,24 +30,10 @@ export default function SettingsPage() {
     loadStore();
   }, [storeId]);
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setMessage("");
-
-    const { error } = await supabase
-      .from("stores")
-      .update({ subaccount_code: subaccountCode })
-      .eq("id", storeId);
-
-    if (error) {
-      setMessage("Error saving settings.");
-    } else {
-      setStore((prev) => prev ? { ...prev, subaccount_code: subaccountCode } : prev);
-      setMessage("Settings saved successfully!");
-    }
-
-    setSaving(false);
+  function handleBankDetailsSaved() {
+    setStore((prev) =>
+      prev ? { ...prev, payment_status: "submitted" } : prev
+    );
   }
 
   if (loading) {
@@ -62,7 +44,7 @@ export default function SettingsPage() {
     );
   }
 
-  const isPaymentConnected = !!store?.subaccount_code;
+  const paymentStatus = store?.payment_status || "pending";
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -74,90 +56,73 @@ export default function SettingsPage() {
         </div>
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">{store?.name} - Settings</h1>
-          <form onSubmit={handleSave} className="space-y-6">
 
-            {/* Payment Settings Section */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-gray-800">Payment Settings</h2>
-                {isPaymentConnected ? (
-                  <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-                    Connected
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>
-                    Not Connected
-                  </span>
-                )}
+          {/* Payment Setup Section */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold text-gray-800">Payment Setup</h2>
+              {paymentStatus === "active" && (
+                <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+                  Payments Active
+                </span>
+              )}
+              {paymentStatus === "submitted" && (
+                <span className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>
+                  Pending Verification
+                </span>
+              )}
+              {paymentStatus === "pending" && (
+                <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+                  Not Set Up
+                </span>
+              )}
+            </div>
+
+            {paymentStatus === "active" && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm font-semibold text-green-800 mb-1">✓ Payments Active</p>
+                <p className="text-xs text-green-700">Your account is set up to receive payments.</p>
               </div>
-
-              {!isPaymentConnected && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
-                  <p className="text-xs text-yellow-800">
-                    Connect your Paystack subaccount to receive payments from customers.
-                  </p>
-                </div>
-              )}
-
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Paystack Subaccount Code
-              </label>
-              <input
-                type="text"
-                value={subaccountCode}
-                onChange={(e) => setSubaccountCode(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="ACCT_xxxxxxxxxxxx"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Enter your Paystack subaccount code to receive split payments.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => setShowInstructions(!showInstructions)}
-                className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 mt-2 font-medium"
-              >
-                <span>{showInstructions ? "▾" : "▸"}</span>
-                How to get a subaccount code
-              </button>
-
-              {showInstructions && (
-                <ol className="text-xs text-gray-600 space-y-1.5 mt-2 pl-4 list-decimal bg-gray-50 rounded-lg p-3">
-                  <li>Go to your <a href="https://dashboard.paystack.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Paystack Dashboard</a></li>
-                  <li>Navigate to <strong>Subaccounts</strong> in the left menu</li>
-                  <li>Click <strong>Create Subaccount</strong> and fill in your bank details</li>
-                  <li>Copy the subaccount code (starts with <code className="bg-gray-100 px-1 rounded">ACCT_</code>)</li>
-                  <li>Paste it in the field above and save</li>
-                </ol>
-              )}
-            </div>
-
-            {/* Store URL Section */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Store URL</label>
-              <p className="text-sm text-indigo-600">
-                /store/{store?.slug}
-              </p>
-            </div>
-
-            {message && (
-              <p className={`text-sm ${message.includes("Error") ? "text-red-500" : "text-green-600"}`}>
-                {message}
-              </p>
             )}
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save Settings"}
-            </button>
-          </form>
+
+            {paymentStatus === "submitted" && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm font-semibold text-yellow-800 mb-2">✓ Bank details submitted — Awaiting verification</p>
+                <p className="text-xs text-yellow-700">
+                  Bank: <span className="font-medium">{store?.bank_name}</span>
+                </p>
+                <p className="text-xs text-yellow-700">
+                  Account: ****{store?.account_number?.slice(-4)}
+                </p>
+                <p className="text-xs text-yellow-700">
+                  Name: <span className="font-medium">{store?.account_name}</span>
+                </p>
+              </div>
+            )}
+
+            {paymentStatus === "pending" && (
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add your bank details to receive payments from customers.
+                </p>
+                <BankDetailsForm storeId={storeId} onSaved={handleBankDetailsSaved} />
+              </div>
+            )}
+          </div>
+
+          {/* Store URL Section */}
+          <div className="border-t border-gray-100 pt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Store URL</label>
+            <p className="text-sm text-indigo-600">
+              /store/{store?.slug}
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+

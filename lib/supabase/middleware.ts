@@ -44,6 +44,14 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  // Protect admin routes - redirect unauthenticated users to login
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    const loginUrl = new URL('/auth/login', request.url)
+    loginUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    loginUrl.searchParams.set('error', 'Please login to access this page')
+    return NextResponse.redirect(loginUrl)
+  }
+
   // Redirect logged-in users away from auth pages
   if (request.nextUrl.pathname.startsWith('/auth') && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
