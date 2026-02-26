@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Store } from "@/types/store";
 import StoreCard from "@/components/dashboard/StoreCard";
 import BalanceCard from "@/components/dashboard/BalanceCard";
-import PaymentSetupModal from "@/components/dashboard/PaymentSetupModal";
+import { ConnectBankModal } from "@/components/dashboard/ConnectBankModal";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [pendingPayouts, setPendingPayouts] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
-  const [paymentModalStore, setPaymentModalStore] = useState<Store | null>(null);
+  const [connectBankStore, setConnectBankStore] = useState<Store | null>(null);
 
   const hasPaymentSetup = stores.some((s) => !!s.subaccount_code);
   const storesWithoutPayment = stores.filter((s) => !s.subaccount_code);
@@ -70,12 +70,11 @@ export default function DashboardPage() {
     window.location.href = "/";
   }
 
-  function handlePaymentSaved(subaccountCode: string) {
-    if (!paymentModalStore) return;
+  function handleBankConnected(storeId: string, accountName: string, subaccountCode: string) {
     setStores((prev) =>
-      prev.map((s) => s.id === paymentModalStore.id ? { ...s, subaccount_code: subaccountCode } : s)
+      prev.map((s) => s.id === storeId ? { ...s, subaccount_code: subaccountCode, account_name: accountName, payment_status: 'active' } : s)
     );
-    setPaymentModalStore(null);
+    setConnectBankStore(null);
   }
 
   return (
@@ -112,19 +111,19 @@ export default function DashboardPage() {
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-yellow-800">
-                ⚠️ Set up payment to receive money
+                ⚠️ Connect your bank to receive payments
               </p>
               <p className="text-xs text-yellow-700 mt-0.5">
                 {storesWithoutPayment.length === 1
-                  ? `"${storesWithoutPayment[0].name}" doesn't have a Paystack account connected.`
-                  : `${storesWithoutPayment.length} stores don't have Paystack connected.`}
+                  ? `"${storesWithoutPayment[0].name}" doesn't have a bank account connected.`
+                  : `${storesWithoutPayment.length} stores don't have a bank account connected.`}
               </p>
             </div>
             <button
-              onClick={() => setPaymentModalStore(storesWithoutPayment[0])}
+              onClick={() => setConnectBankStore(storesWithoutPayment[0])}
               className="shrink-0 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-700 transition"
             >
-              Connect Payment
+              Connect Bank
             </button>
           </div>
         )}
@@ -144,18 +143,19 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
             {stores.map((store) => (
-              <StoreCard key={store.id} store={store} />
+              <StoreCard key={store.id} store={store} onBankConnected={handleBankConnected} />
             ))}
           </div>
         )}
       </div>
 
-      {paymentModalStore && (
-        <PaymentSetupModal
-          storeId={paymentModalStore.id}
-          storeName={paymentModalStore.name}
-          onClose={() => setPaymentModalStore(null)}
-          onSaved={handlePaymentSaved}
+      {connectBankStore && (
+        <ConnectBankModal
+          storeId={connectBankStore.id}
+          storeName={connectBankStore.name}
+          isOpen={true}
+          onClose={() => setConnectBankStore(null)}
+          onSuccess={(accountName, subaccountCode) => handleBankConnected(connectBankStore.id, accountName, subaccountCode)}
         />
       )}
     </div>
