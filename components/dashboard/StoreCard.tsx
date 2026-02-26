@@ -6,6 +6,8 @@ interface StoreCardProps {
 }
 
 export default function StoreCard({ store }: StoreCardProps) {
+  const isPaymentConnected = !!store.subaccount_code;
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition">
       <div className="flex items-start justify-between mb-3">
@@ -16,6 +18,23 @@ export default function StoreCard({ store }: StoreCardProps) {
         <span className="bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-1 rounded-full">
           {store.theme_id}
         </span>
+      </div>
+      <div className="mb-3">
+        {isPaymentConnected ? (
+          <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+            Payment Connected
+          </span>
+        ) : (
+          <Link
+            href={`/dashboard/stores/${store.id}/settings`}
+            className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full hover:bg-yellow-200 transition"
+            title="Set up Paystack to receive payments"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>
+            Setup Required
+          </Link>
+        )}
       </div>
       <div className="flex gap-2 mt-4">
         <Link
@@ -36,6 +55,16 @@ export default function StoreCard({ store }: StoreCardProps) {
           className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
         >
           View
+        </Link>
+        <Link
+          href={`/dashboard/stores/${store.id}/settings`}
+          className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition flex items-center"
+          title="Store settings"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
         </Link>
       </div>
     </div>
