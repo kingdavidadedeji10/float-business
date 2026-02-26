@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Product } from "@/types/product";
+import { Product, ProductVariant } from "@/types/product";
 import { formatCurrency } from "@/lib/helpers";
 
 interface ProductTableProps {
@@ -17,8 +17,25 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [weight, setWeight] = useState("");
+  const [sizeCategory, setSizeCategory] = useState<"" | "small" | "medium" | "large">("");
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [variantName, setVariantName] = useState("");
+  const [variantOptions, setVariantOptions] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+
+  function handleAddVariant() {
+    if (!variantName.trim() || !variantOptions.trim()) return;
+    const options = variantOptions.split(",").map((o) => o.trim()).filter(Boolean);
+    setVariants([...variants, { name: variantName.trim(), options }]);
+    setVariantName("");
+    setVariantOptions("");
+  }
+
+  function handleRemoveVariant(idx: number) {
+    setVariants(variants.filter((_, i) => i !== idx));
+  }
 
   async function handleAddProduct(e: React.FormEvent) {
     e.preventDefault();
@@ -31,6 +48,9 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
       price: parseFloat(price),
       description: description || null,
       image_url: imageUrl || null,
+      weight: weight ? parseFloat(weight) : null,
+      size_category: sizeCategory || null,
+      variants: variants.length > 0 ? variants : null,
     });
 
     if (error) {
@@ -43,6 +63,9 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
     setPrice("");
     setDescription("");
     setImageUrl("");
+    setWeight("");
+    setSizeCategory("");
+    setVariants([]);
     setShowForm(false);
     setSaving(false);
     onUpdate();
@@ -101,6 +124,66 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
               rows={2}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="Weight (kg)"
+                min="0"
+                step="0.01"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <select
+                value={sizeCategory}
+                onChange={(e) => setSizeCategory(e.target.value as "" | "small" | "medium" | "large")}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Size category</option>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+
+            {/* Variants */}
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-1">Variants (optional)</p>
+              {variants.map((v, idx) => (
+                <div key={idx} className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xs text-gray-700 flex-1">
+                    <strong>{v.name}</strong>: {v.options.join(", ")}
+                  </span>
+                  <button type="button" onClick={() => handleRemoveVariant(idx)} className="text-xs text-red-500">
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={variantName}
+                  onChange={(e) => setVariantName(e.target.value)}
+                  placeholder="e.g. Size"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <input
+                  type="text"
+                  value={variantOptions}
+                  onChange={(e) => setVariantOptions(e.target.value)}
+                  placeholder="S, M, L"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddVariant}
+                  className="text-xs text-indigo-600 border border-indigo-300 px-2 py-1.5 rounded-lg hover:bg-indigo-50 transition"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={saving}
@@ -124,6 +207,7 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
               <tr>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Product</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Price</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 hidden sm:table-cell">Size</th>
                 <th className="text-right text-xs font-medium text-gray-500 uppercase px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -136,9 +220,15 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
                       {product.description && (
                         <p className="text-xs text-gray-500 truncate max-w-xs">{product.description}</p>
                       )}
+                      {product.weight && (
+                        <p className="text-xs text-gray-400">{product.weight}kg</p>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">{formatCurrency(product.price)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500 capitalize hidden sm:table-cell">
+                    {product.size_category || "—"}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => handleDelete(product.id)}

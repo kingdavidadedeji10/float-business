@@ -2,6 +2,7 @@ import { Product } from "@/types/product";
 import { Store } from "@/types/store";
 import { formatCurrency } from "@/lib/helpers";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ThemeProps {
   store: Store;
@@ -31,9 +32,12 @@ export default function Theme3({ store, products }: ThemeProps) {
                 <div className="mt-3">
                   <h3 className="text-stone-800 font-medium text-sm uppercase tracking-wide">{product.name}</h3>
                   <p className="text-stone-500 text-sm mt-1">{formatCurrency(product.price)}</p>
-                  <button className="mt-2 text-xs underline text-stone-600 hover:text-stone-900 transition">
+                  <Link
+                    href={`/store/${store.slug}/product/${product.id}`}
+                    className="mt-2 text-xs underline text-stone-600 hover:text-stone-900 transition"
+                  >
                     Add to Cart
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}
