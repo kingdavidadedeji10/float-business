@@ -16,8 +16,8 @@ export default function DashboardPage() {
   const [orderCount, setOrderCount] = useState(0);
   const [paymentModalStore, setPaymentModalStore] = useState<Store | null>(null);
 
-  const hasPaymentSetup = stores.some((s) => !!s.subaccount_code);
-  const storesWithoutPayment = stores.filter((s) => !s.subaccount_code);
+  const hasPaymentSetup = stores.some((s) => s.payment_status === "active");
+  const storesWithoutPayment = stores.filter((s) => !s.payment_status || s.payment_status === "pending");
 
   useEffect(() => {
     async function loadData() {
@@ -70,10 +70,10 @@ export default function DashboardPage() {
     window.location.href = "/";
   }
 
-  function handlePaymentSaved(subaccountCode: string) {
+  function handlePaymentSaved() {
     if (!paymentModalStore) return;
     setStores((prev) =>
-      prev.map((s) => s.id === paymentModalStore.id ? { ...s, subaccount_code: subaccountCode } : s)
+      prev.map((s) => s.id === paymentModalStore.id ? { ...s, payment_status: "submitted" } : s)
     );
     setPaymentModalStore(null);
   }
@@ -112,19 +112,19 @@ export default function DashboardPage() {
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-yellow-800">
-                ⚠️ Set up payment to receive money
+                ⚠️ Add bank details to receive payments
               </p>
               <p className="text-xs text-yellow-700 mt-0.5">
                 {storesWithoutPayment.length === 1
-                  ? `"${storesWithoutPayment[0].name}" doesn't have a Paystack account connected.`
-                  : `${storesWithoutPayment.length} stores don't have Paystack connected.`}
+                  ? `"${storesWithoutPayment[0].name}" doesn't have bank details added yet.`
+                  : `${storesWithoutPayment.length} stores don't have bank details yet.`}
               </p>
             </div>
             <button
               onClick={() => setPaymentModalStore(storesWithoutPayment[0])}
               className="shrink-0 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-700 transition"
             >
-              Connect Payment
+              Add Bank Details
             </button>
           </div>
         )}

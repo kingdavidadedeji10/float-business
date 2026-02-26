@@ -6,7 +6,7 @@ interface StoreCardProps {
 }
 
 export default function StoreCard({ store }: StoreCardProps) {
-  const isPaymentConnected = !!store.subaccount_code;
+  const paymentStatus = store.payment_status || "pending";
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition">
@@ -20,19 +20,24 @@ export default function StoreCard({ store }: StoreCardProps) {
         </span>
       </div>
       <div className="mb-3">
-        {isPaymentConnected ? (
+        {paymentStatus === "active" ? (
           <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-            Payment Connected
+            Payments Active
+          </span>
+        ) : paymentStatus === "submitted" ? (
+          <span className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>
+            Pending Verification
           </span>
         ) : (
           <Link
             href={`/dashboard/stores/${store.id}/settings`}
-            className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full hover:bg-yellow-200 transition"
-            title="Set up Paystack to receive payments"
+            className="inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-medium px-2.5 py-1 rounded-full hover:bg-red-100 transition"
+            title="Add your bank details to receive payments"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>
-            Setup Required
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
+            Add Bank Details
           </Link>
         )}
       </div>
