@@ -5,5 +5,9 @@ export interface Store {
   slug: string;
   theme_id: string;
   subaccount_code: string | null;
+  bank_name: string | null;
+  account_number: string | null;
+  account_name: string | null;
+  payment_status: string | null;
   created_at: string;
 }
