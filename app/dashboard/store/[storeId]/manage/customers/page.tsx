@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/helpers";
 import Link from "next/link";
-import StoreSwitcher from "@/components/dashboard/StoreSwitcher";
+import StoreHeader from "@/components/dashboard/StoreHeader";
 import { Store } from "@/types/store";
 
 interface Customer {
@@ -24,6 +24,8 @@ export default function CustomersPage() {
   const [allStores, setAllStores] = useState<Store[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -66,7 +68,13 @@ export default function CustomersPage() {
       setLoading(false);
     }
     loadData();
-  }, [storeId]);
+  }, [storeId, refreshKey]);
+
+  function handleRefresh() {
+    setIsRefreshing(true);
+    setRefreshKey((k) => k + 1);
+    setTimeout(() => setIsRefreshing(false), 800);
+  }
 
   const tabs = [
     { label: "Overview", href: `/dashboard/store/${storeId}/manage` },
@@ -82,16 +90,18 @@ export default function CustomersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-indigo-600 text-sm hover:underline">← Dashboard</Link>
-          <StoreSwitcher currentStoreId={storeId} stores={allStores} />
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/store/${store?.slug}`} target="_blank" className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">View Store</Link>
-          <Link href={`/dashboard/stores/${storeId}/settings`} className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">Settings</Link>
-        </div>
-      </nav>
+      <StoreHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: store?.name ?? "Store", href: `/dashboard/store/${storeId}/manage` },
+          { label: "Customers" },
+        ]}
+        storeId={storeId}
+        storeSlug={store?.slug}
+        allStores={allStores}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+      />
 
       <div className="bg-white border-b border-gray-200 px-4 overflow-x-auto">
         <div className="flex gap-1 max-w-5xl mx-auto">
