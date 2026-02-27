@@ -40,6 +40,24 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true });
       }
 
+      // Decrement product stock
+      if (order.product_id && order.quantity) {
+        const { data: productData } = await supabase
+          .from("products")
+          .select("quantity")
+          .eq("id", order.product_id)
+          .single();
+
+        if (productData && productData.quantity != null) {
+          const newQty = Math.max(0, productData.quantity - order.quantity);
+          await supabase
+            .from("products")
+            .update({ quantity: newQty })
+            .eq("id", order.product_id)
+            .gte("quantity", order.quantity);
+        }
+      }
+
       // If delivery, book shipment and create delivery record
       if (order.delivery_method === "delivery" && order.customer_address) {
         // Fetch store for pickup address

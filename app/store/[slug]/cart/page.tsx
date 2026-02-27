@@ -72,6 +72,34 @@ export default function CartPage() {
       return;
     }
 
+    // Validate cart items against current stock
+    const productIds = cartItems.map((i) => i.productId);
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, quantity")
+      .in("id", productIds);
+
+    if (products && products.length > 0) {
+      let stockError = false;
+      const updatedItems = cartItems.map((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        if (product && product.quantity != null && item.quantity > product.quantity) {
+          stockError = true;
+          return { ...item, quantity: product.quantity, stockQuantity: product.quantity };
+        }
+        return item;
+      });
+
+      if (stockError) {
+        updatedItems
+          .filter((item, idx) => item.quantity !== cartItems[idx].quantity)
+          .forEach((item) => updateQuantity(store.id, item.productId, item.quantity));
+        setCartItems(updatedItems);
+        setError("Some items have limited stock. Quantities have been updated.");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       // Checkout the first item (primary item) with the cart total
@@ -185,10 +213,14 @@ export default function CartPage() {
                       <span className="text-sm font-medium">{item.quantity}</span>
                       <button
                         onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
-                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition"
+                        disabled={item.stockQuantity != null && item.quantity >= item.stockQuantity}
+                        className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
                       >
                         +
                       </button>
+                      {item.stockQuantity != null && item.quantity >= item.stockQuantity && (
+                        <span className="text-xs text-amber-600">Max quantity</span>
+                      )}
                       <button
                         onClick={() => handleRemove(item.productId)}
                         className="ml-auto text-xs text-red-500 hover:text-red-700 transition"

@@ -247,7 +247,12 @@ export default function ProductPage() {
           <p className="text-sm font-medium text-gray-700">Quantity</p>
           <QuantitySelector
             quantity={quantity}
-            onIncrease={() => setQuantity((q) => q + 1)}
+            max={product.quantity ?? undefined}
+            onIncrease={() =>
+              setQuantity((q) =>
+                product.quantity != null ? Math.min(q + 1, product.quantity) : q + 1
+              )
+            }
             onDecrease={() => setQuantity((q) => Math.max(1, q - 1))}
           />
         </div>
