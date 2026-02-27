@@ -28,9 +28,7 @@ export default function StoreHeader({
     <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
       <div className="flex items-center gap-3 min-w-0">
         <Breadcrumbs items={breadcrumbs} />
-        {allStores.length > 1 && (
-          <StoreSwitcher currentStoreId={storeId} stores={allStores} />
-        )}
+        <StoreSwitcher currentStoreId={storeId} stores={allStores} />
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {showAddProduct && (

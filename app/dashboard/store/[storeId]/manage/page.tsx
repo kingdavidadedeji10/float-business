@@ -111,6 +111,7 @@ export default function ManagePage() {
         allStores={allStores}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
+        showAddProduct
       />
 
       {/* Tabs */}
