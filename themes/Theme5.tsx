@@ -2,6 +2,7 @@ import { Product } from "@/types/product";
 import { Store } from "@/types/store";
 import { formatCurrency } from "@/lib/helpers";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ThemeProps {
   store: Store;
@@ -41,9 +42,12 @@ export default function Theme5({ store, products }: ThemeProps) {
                   )}
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-violet-600 font-bold text-lg">{formatCurrency(product.price)}</span>
-                    <button className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition">
+                    <Link
+                      href={`/store/${store.slug}/product/${product.id}`}
+                      className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition"
+                    >
                       Purchase
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

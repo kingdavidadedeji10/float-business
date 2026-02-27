@@ -37,17 +37,17 @@ export default function DashboardPage() {
         const storeIds = loadedStores.map((s) => s.id);
         const { data: orderData } = await supabase
           .from("orders")
-          .select("amount, payment_status")
+          .select("total, status")
           .in("store_id", storeIds);
 
         if (orderData) {
           const { earnings, pending, count } = orderData.reduce(
             (acc, o) => {
-              if (o.payment_status === "paid") {
-                acc.earnings += o.amount || 0;
+              if (o.status === "paid") {
+                acc.earnings += o.total || 0;
                 acc.count += 1;
               } else {
-                acc.pending += o.amount || 0;
+                acc.pending += o.total || 0;
               }
               return acc;
             },

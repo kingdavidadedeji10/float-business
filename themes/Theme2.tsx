@@ -2,6 +2,7 @@ import { Product } from "@/types/product";
 import { Store } from "@/types/store";
 import { formatCurrency } from "@/lib/helpers";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ThemeProps {
   store: Store;
@@ -36,9 +37,12 @@ export default function Theme2({ store, products }: ThemeProps) {
                   )}
                   <div className="flex items-center justify-between mt-3">
                     <span className="text-yellow-400 font-bold">{formatCurrency(product.price)}</span>
-                    <button className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-300 transition">
+                    <Link
+                      href={`/store/${store.slug}/product/${product.id}`}
+                      className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-300 transition"
+                    >
                       Buy
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

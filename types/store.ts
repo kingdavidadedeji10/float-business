@@ -9,5 +9,6 @@ export interface Store {
   account_number: string | null;
   account_name: string | null;
   payment_status: string | null;
+  pickup_address: string | null;
   created_at: string;
 }
