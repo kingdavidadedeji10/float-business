@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/helpers";
 import Link from "next/link";
 import Image from "next/image";
-import StoreSwitcher from "@/components/dashboard/StoreSwitcher";
+import StoreHeader from "@/components/dashboard/StoreHeader";
 import { Store } from "@/types/store";
 import { Product } from "@/types/product";
 
@@ -17,6 +17,8 @@ export default function ManageProductsPage() {
   const [allStores, setAllStores] = useState<Store[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function ManageProductsPage() {
       setLoading(false);
     }
     loadData();
-  }, [storeId]);
+  }, [storeId, refreshKey]);
 
   async function handleDelete(productId: string) {
     if (!confirm("Delete this product?")) return;
@@ -48,6 +50,12 @@ export default function ManageProductsPage() {
     navigator.clipboard.writeText(url);
     setCopied(product.id);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  function handleRefresh() {
+    setIsRefreshing(true);
+    setRefreshKey((k) => k + 1);
+    setTimeout(() => setIsRefreshing(false), 800);
   }
 
   const tabs = [
@@ -64,16 +72,19 @@ export default function ManageProductsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-indigo-600 text-sm hover:underline">← Dashboard</Link>
-          <StoreSwitcher currentStoreId={storeId} stores={allStores} />
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/store/${store?.slug}`} target="_blank" className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">View Store</Link>
-          <Link href={`/dashboard/stores/${storeId}/settings`} className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">Settings</Link>
-        </div>
-      </nav>
+      <StoreHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: store?.name ?? "Store", href: `/dashboard/store/${storeId}/manage` },
+          { label: "Products" },
+        ]}
+        storeId={storeId}
+        storeSlug={store?.slug}
+        allStores={allStores}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        showAddProduct
+      />
 
       <div className="bg-white border-b border-gray-200 px-4 overflow-x-auto">
         <div className="flex gap-1 max-w-5xl mx-auto">
@@ -86,15 +97,7 @@ export default function ManageProductsPage() {
       </div>
 
       <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Products ({products.length})</h2>
-          <Link
-            href={`/dashboard/stores/${storeId}/products`}
-            className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-          >
-            + Add Product
-          </Link>
-        </div>
+        <h2 className="text-xl font-bold text-gray-900">Products ({products.length})</h2>
 
         {products.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 py-12 text-center">
