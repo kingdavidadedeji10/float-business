@@ -1,8 +1,13 @@
+"use client";
+
 import { Product } from "@/types/product";
 import { Store } from "@/types/store";
 import { formatCurrency } from "@/lib/helpers";
+import { addToCart, getCart, getCartCount, CartItem } from "@/lib/cart";
 import Image from "next/image";
-import Link from "next/link";
+import { useState, useEffect, useCallback } from "react";
+import CartIcon from "@/components/cart/CartIcon";
+import CartDrawer from "@/components/cart/CartDrawer";
 
 interface ThemeProps {
   store: Store;
@@ -12,11 +17,42 @@ interface ThemeProps {
 const colors = ["bg-pink-500", "bg-blue-500", "bg-green-500", "bg-orange-500", "bg-purple-500"];
 
 export default function Theme4({ store, products }: ThemeProps) {
+  const [cartCount, setCartCount] = useState(0);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [addedId, setAddedId] = useState<string | null>(null);
+
+  const refreshCart = useCallback(() => {
+    setCartCount(getCartCount(store.id));
+    setCartItems(getCart(store.id));
+  }, [store.id]);
+
+  useEffect(() => {
+    refreshCart();
+  }, [refreshCart]);
+
+  function handleAddToCart(product: Product) {
+    addToCart(store.id, {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image_url: product.image_url,
+      quantity: 1,
+      variants: {},
+    });
+    refreshCart();
+    setAddedId(product.id);
+    setTimeout(() => setAddedId(null), 1500);
+  }
+
   return (
     <div className="min-h-screen bg-yellow-50">
-      <header className="bg-pink-600 text-white py-8 px-4 text-center">
+      <header className="bg-pink-600 text-white py-8 px-4 text-center relative">
         <h1 className="text-4xl font-black">{store.name}</h1>
         <p className="text-pink-200 mt-1 font-medium">Shop the best products!</p>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white">
+          <CartIcon count={cartCount} onClick={() => setCartOpen(true)} />
+        </div>
       </header>
       <main className="max-w-5xl mx-auto p-4 sm:p-6">
         {products.length === 0 ? (
@@ -37,18 +73,27 @@ export default function Theme4({ store, products }: ThemeProps) {
                 <div className="p-3">
                   <h3 className="font-black text-gray-900">{product.name}</h3>
                   <p className="text-pink-600 font-bold mt-1">{formatCurrency(product.price)}</p>
-                  <Link
-                    href={`/store/${store.slug}/product/${product.id}`}
+                  <button
+                    onClick={() => handleAddToCart(product)}
                     className="block w-full mt-2 bg-black text-white text-sm font-bold py-1.5 rounded-lg hover:bg-gray-800 transition text-center"
                   >
-                    BUY NOW
-                  </Link>
+                    {addedId === product.id ? "✓ Added!" : "Add to Cart"}
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </main>
+      {cartOpen && (
+        <CartDrawer
+          storeId={store.id}
+          storeSlug={store.slug}
+          items={cartItems}
+          onClose={() => setCartOpen(false)}
+          onCartChange={refreshCart}
+        />
+      )}
     </div>
   );
 }

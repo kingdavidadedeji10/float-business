@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Store } from "@/types/store";
 import Link from "next/link";
 import { ConnectBankModal } from "@/components/dashboard/ConnectBankModal";
+import { supabase } from "@/lib/supabase";
+import { formatCurrency } from "@/lib/helpers";
 
 interface StoreCardProps {
   store: Store;
@@ -13,6 +15,19 @@ interface StoreCardProps {
 export default function StoreCard({ store, onBankConnected }: StoreCardProps) {
   const isPaymentConnected = !!store.subaccount_code;
   const [modalOpen, setModalOpen] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("orders")
+      .select("total")
+      .eq("store_id", store.id)
+      .eq("status", "paid")
+      .then(({ data }) => {
+        const total = (data || []).reduce((sum, o) => sum + (o.total || 0), 0);
+        setBalance(total);
+      });
+  }, [store.id]);
 
   function handleSuccess(accountName: string, subaccountCode: string) {
     setModalOpen(false);
@@ -26,10 +41,26 @@ export default function StoreCard({ store, onBankConnected }: StoreCardProps) {
           <h3 className="font-semibold text-gray-900 text-lg">{store.name}</h3>
           <p className="text-xs text-gray-500 mt-0.5">/store/{store.slug}</p>
         </div>
-        <span className="bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-1 rounded-full">
-          {store.theme_id}
-        </span>
+        <Link
+          href={`/dashboard/stores/${store.id}/settings`}
+          className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
+          title="Store settings"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </Link>
       </div>
+
+      {/* Balance */}
+      <div className="mb-3">
+        <p className="text-xs text-gray-500 mb-0.5">Total Earnings</p>
+        <p className="text-2xl font-bold text-gray-900">
+          {balance === null ? "—" : formatCurrency(balance)}
+        </p>
+      </div>
+
       <div className="mb-3">
         {isPaymentConnected ? (
           <div>
@@ -54,16 +85,10 @@ export default function StoreCard({ store, onBankConnected }: StoreCardProps) {
       </div>
       <div className="flex gap-2 mt-4">
         <Link
-          href={`/dashboard/stores/${store.id}/products`}
+          href={`/dashboard/store/${store.id}/manage`}
           className="flex-1 text-center text-sm bg-indigo-600 text-white py-1.5 rounded-lg hover:bg-indigo-700 transition"
         >
-          Products
-        </Link>
-        <Link
-          href={`/dashboard/stores/${store.id}/orders`}
-          className="flex-1 text-center text-sm border border-gray-300 text-gray-700 py-1.5 rounded-lg hover:bg-gray-50 transition"
-        >
-          Orders
+          Manage
         </Link>
         <Link
           href={`/store/${store.slug}`}
@@ -71,16 +96,6 @@ export default function StoreCard({ store, onBankConnected }: StoreCardProps) {
           className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
         >
           View
-        </Link>
-        <Link
-          href={`/dashboard/stores/${store.id}/settings`}
-          className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition flex items-center"
-          title="Store settings"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
         </Link>
       </div>
 
