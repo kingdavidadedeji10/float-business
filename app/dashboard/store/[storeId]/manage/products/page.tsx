@@ -83,7 +83,6 @@ export default function ManageProductsPage() {
         allStores={allStores}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
-        showAddProduct
       />
 
       <div className="bg-white border-b border-gray-200 px-4 overflow-x-auto">
