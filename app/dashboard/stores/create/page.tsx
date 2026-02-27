@@ -49,7 +49,7 @@ export default function CreateStorePage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push(`/dashboard/stores/${data.id}/products`);
+      router.push(`/dashboard/store/${data.id}/manage`);
     }
   }
 

@@ -14,4 +14,5 @@ export interface Product {
   weight: number | null;
   size_category: string | null;
   variants: ProductVariant[] | null;
+  quantity: number | null;
 }

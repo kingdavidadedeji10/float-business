@@ -7,6 +7,7 @@ import { Store } from "@/types/store";
 import { formatCurrency } from "@/lib/helpers";
 import Link from "next/link";
 import StoreSwitcher from "@/components/dashboard/StoreSwitcher";
+import { ConnectBankModal } from "@/components/dashboard/ConnectBankModal";
 
 interface Stats {
   totalEarnings: number;
@@ -33,6 +34,7 @@ export default function ManagePage() {
     recentOrders: [],
   });
   const [loading, setLoading] = useState(true);
+  const [bankModalOpen, setBankModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -66,6 +68,11 @@ export default function ManagePage() {
     }
     loadData();
   }, [storeId]);
+
+  function handleBankConnected(accountName: string, subaccountCode: string) {
+    setStore((prev) => prev ? { ...prev, subaccount_code: subaccountCode, account_name: accountName, payment_status: "active" } : prev);
+    setBankModalOpen(false);
+  }
 
   if (loading) {
     return (
@@ -130,6 +137,25 @@ export default function ManagePage() {
       </div>
 
       <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+        {/* Connect Bank Card */}
+        {store && !store.subaccount_code && (
+          <div className="bg-white rounded-xl border border-indigo-200 p-5 flex items-start gap-4">
+            <div className="text-3xl">💳</div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">Connect Your Bank</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Add your bank account to receive payments from customers.
+              </p>
+            </div>
+            <button
+              onClick={() => setBankModalOpen(true)}
+              className="shrink-0 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition"
+            >
+              Connect Bank Account
+            </button>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -204,6 +230,16 @@ export default function ManagePage() {
           )}
         </div>
       </div>
+
+      {store && (
+        <ConnectBankModal
+          storeId={store.id}
+          storeName={store.name}
+          isOpen={bankModalOpen}
+          onClose={() => setBankModalOpen(false)}
+          onSuccess={handleBankConnected}
+        />
+      )}
     </div>
   );
 }

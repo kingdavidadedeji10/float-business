@@ -115,6 +115,11 @@ export default function ManageProductsPage() {
                 <div className="flex-1 p-3 min-w-0">
                   <h3 className="font-medium text-gray-900 truncate">{product.name}</h3>
                   <p className="text-indigo-600 font-semibold text-sm mt-0.5">{formatCurrency(product.price)}</p>
+                  {product.quantity != null && product.quantity === 0 ? (
+                    <span className="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">Out of Stock</span>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1">Stock: {product.quantity}</p>
+                  )}
                   {/* Shareable link */}
                   <div className="flex items-center gap-1 mt-2">
                     <input
