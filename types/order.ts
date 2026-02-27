@@ -13,6 +13,10 @@ export interface Order {
   customer_phone: string;
   customer_email: string | null;
   customer_address: string | null;
+  customer_city: string | null;
+  customer_state: string | null;
+  customer_postal_code: string | null;
+  customer_landmark: string | null;
   status: string;
   paystack_reference: string | null;
   created_at: string;

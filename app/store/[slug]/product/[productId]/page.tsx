@@ -32,6 +32,10 @@ export default function ProductPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [customerCity, setCustomerCity] = useState("");
+  const [customerState, setCustomerState] = useState("");
+  const [customerPostalCode, setCustomerPostalCode] = useState("");
+  const [customerLandmark, setCustomerLandmark] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -110,6 +114,10 @@ export default function ProductPage() {
     else if (field === "phone") setCustomerPhone(value);
     else if (field === "email") setCustomerEmail(value);
     else if (field === "address") setCustomerAddress(value);
+    else if (field === "city") setCustomerCity(value);
+    else if (field === "state") setCustomerState(value);
+    else if (field === "postalCode") setCustomerPostalCode(value);
+    else if (field === "landmark") setCustomerLandmark(value);
   }
 
   async function handlePay() {
@@ -119,7 +127,15 @@ export default function ProductPage() {
       return;
     }
     if (deliveryMethod === "delivery" && !customerAddress.trim()) {
-      setError("Please enter your delivery address.");
+      setError("Please enter your street address.");
+      return;
+    }
+    if (deliveryMethod === "delivery" && !customerCity.trim()) {
+      setError("Please enter your city.");
+      return;
+    }
+    if (deliveryMethod === "delivery" && !customerState) {
+      setError("Please select your state.");
       return;
     }
 
@@ -139,6 +155,10 @@ export default function ProductPage() {
           customerPhone,
           customerEmail,
           customerAddress,
+          customerCity,
+          customerState,
+          customerPostalCode,
+          customerLandmark,
         }),
       });
 
@@ -289,6 +309,10 @@ export default function ProductPage() {
             phone={customerPhone}
             email={customerEmail}
             address={customerAddress}
+            city={customerCity}
+            state={customerState}
+            postalCode={customerPostalCode}
+            landmark={customerLandmark}
             showAddress={deliveryMethod === "delivery"}
             onChange={handleCustomerFieldChange}
           />

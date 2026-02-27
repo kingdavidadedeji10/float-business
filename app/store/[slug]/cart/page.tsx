@@ -9,6 +9,14 @@ import { formatCurrency } from "@/lib/helpers";
 import { Store } from "@/types/store";
 import { getCart, CartItem, updateQuantity, removeFromCart, clearCart } from "@/lib/cart";
 
+const NIGERIAN_STATES = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue",
+  "Borno", "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT",
+  "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi",
+  "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo",
+  "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
+];
+
 export default function CartPage() {
   const params = useParams();
   const router = useRouter();
@@ -20,6 +28,11 @@ export default function CartPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [customerCity, setCustomerCity] = useState("");
+  const [customerState, setCustomerState] = useState("");
+  const [customerPostalCode, setCustomerPostalCode] = useState("");
+  const [customerLandmark, setCustomerLandmark] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -65,6 +78,18 @@ export default function CartPage() {
     setError("");
     if (!customerName.trim() || !customerPhone.trim()) {
       setError("Please enter your name and phone number.");
+      return;
+    }
+    if (!customerAddress.trim()) {
+      setError("Please enter your street address.");
+      return;
+    }
+    if (!customerCity.trim()) {
+      setError("Please enter your city.");
+      return;
+    }
+    if (!customerState) {
+      setError("Please select your state.");
       return;
     }
     if (cartItems.length === 0) {
@@ -117,7 +142,11 @@ export default function CartPage() {
           customerName,
           customerPhone,
           customerEmail,
-          customerAddress: "",
+          customerAddress,
+          customerCity,
+          customerState,
+          customerPostalCode,
+          customerLandmark,
           cartItems: cartItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
@@ -244,7 +273,7 @@ export default function CartPage() {
 
             {/* Customer Details */}
             <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-              <p className="text-sm font-medium text-gray-700">Your Details</p>
+              <p className="text-sm font-medium text-gray-700">Customer Information</p>
               <input
                 type="text"
                 placeholder="Full name *"
@@ -264,6 +293,49 @@ export default function CartPage() {
                 placeholder="Email (optional)"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <p className="text-sm font-medium text-gray-700 pt-1">Delivery Address</p>
+              <input
+                type="text"
+                placeholder="Street Address *"
+                value={customerAddress}
+                onChange={(e) => setCustomerAddress(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                placeholder="Landmark (optional, e.g. Near GTBank)"
+                value={customerLandmark}
+                onChange={(e) => setCustomerLandmark(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="City *"
+                  value={customerCity}
+                  onChange={(e) => setCustomerCity(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <select
+                  value={customerState}
+                  onChange={(e) => setCustomerState(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                  <option value="">State *</option>
+                  {NIGERIAN_STATES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <input
+                type="text"
+                placeholder="Postal Code (optional)"
+                value={customerPostalCode}
+                onChange={(e) => setCustomerPostalCode(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
