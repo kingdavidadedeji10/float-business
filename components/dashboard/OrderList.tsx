@@ -28,17 +28,17 @@ export default function OrderList({ orders }: OrderListProps) {
         <tbody className="divide-y divide-gray-100">
           {orders.map((order) => (
             <tr key={order.id} className="hover:bg-gray-50">
-              <td className="px-4 py-3 text-sm text-gray-900">{order.buyer_email}</td>
-              <td className="px-4 py-3 text-sm text-gray-700">{formatCurrency(order.amount)}</td>
+              <td className="px-4 py-3 text-sm text-gray-900">{order.customer_email || order.customer_name}</td>
+              <td className="px-4 py-3 text-sm text-gray-700">{formatCurrency(order.total)}</td>
               <td className="px-4 py-3">
                 <span
                   className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    order.payment_status === "paid"
+                    order.status === "paid"
                       ? "bg-green-100 text-green-700"
                       : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
-                  {order.payment_status}
+                  {order.status}
                 </span>
               </td>
               <td className="px-4 py-3 text-sm text-gray-500">
