@@ -35,6 +35,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
+    // Validate stock
+    if (product.quantity != null && product.quantity < quantity) {
+      return NextResponse.json(
+        {
+          error:
+            product.quantity === 0
+              ? "This product is out of stock."
+              : `Only ${product.quantity} available.`,
+        },
+        { status: 400 }
+      );
+    }
+
     // Fetch store for subaccount
     const { data: store, error: storeError } = await supabase
       .from("stores")

@@ -40,6 +40,7 @@ export default function Theme4({ store, products }: ThemeProps) {
       image_url: product.image_url,
       quantity: 1,
       variants: {},
+      stockQuantity: product.quantity ?? undefined,
     });
     refreshCart();
     setAddedId(product.id);

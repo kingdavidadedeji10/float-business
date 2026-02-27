@@ -7,6 +7,7 @@ export interface CartItem {
   image_url: string | null;
   quantity: number;
   variants: Record<string, string>;
+  stockQuantity?: number;
 }
 
 export function getCart(storeId: string): CartItem[] {
@@ -23,19 +24,40 @@ function saveCart(storeId: string, cart: CartItem[]): void {
   localStorage.setItem(`${CART_KEY_PREFIX}${storeId}`, JSON.stringify(cart));
 }
 
-export function addToCart(storeId: string, item: CartItem): void {
+export function addToCart(
+  storeId: string,
+  item: CartItem
+): { capped: boolean; available: number } {
   const cart = getCart(storeId);
   const existingIndex = cart.findIndex(
     (i) =>
       i.productId === item.productId &&
       JSON.stringify(i.variants) === JSON.stringify(item.variants)
   );
+  const stock = item.stockQuantity;
+  let capped = false;
+
   if (existingIndex >= 0) {
-    cart[existingIndex].quantity += item.quantity;
+    const newQty = cart[existingIndex].quantity + item.quantity;
+    if (stock != null && newQty > stock) {
+      cart[existingIndex].quantity = stock;
+      capped = true;
+    } else {
+      cart[existingIndex].quantity = newQty;
+    }
+    if (stock != null) {
+      cart[existingIndex].stockQuantity = stock;
+    }
   } else {
-    cart.push(item);
+    const cartItem = { ...item };
+    if (stock != null && cartItem.quantity > stock) {
+      cartItem.quantity = stock;
+      capped = true;
+    }
+    cart.push(cartItem);
   }
   saveCart(storeId, cart);
+  return { capped, available: stock ?? 0 };
 }
 
 export function updateQuantity(
