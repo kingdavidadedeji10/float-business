@@ -32,6 +32,7 @@ export default function Theme4({ store, products }: ThemeProps) {
   }, [refreshCart]);
 
   function handleAddToCart(product: Product) {
+    if (product.quantity != null && product.quantity === 0) return;
     addToCart(store.id, {
       productId: product.id,
       name: product.name,
@@ -60,7 +61,7 @@ export default function Theme4({ store, products }: ThemeProps) {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
             {products.map((product, index) => (
-              <div key={product.id} className="bg-white rounded-2xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition">
+              <div key={product.id} className={`bg-white rounded-2xl overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition${product.quantity != null && product.quantity === 0 ? " opacity-70" : ""}`}>
                 <div className={`${colors[index % colors.length]} h-40 relative`}>
                   {product.image_url ? (
                     <Image src={product.image_url} alt={product.name} fill className="object-cover" />
@@ -69,15 +70,19 @@ export default function Theme4({ store, products }: ThemeProps) {
                       {product.name[0]}
                     </div>
                   )}
+                  {product.quantity != null && product.quantity === 0 && (
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">Out of Stock</div>
+                  )}
                 </div>
                 <div className="p-3">
                   <h3 className="font-black text-gray-900">{product.name}</h3>
-                  <p className="text-pink-600 font-bold mt-1">{formatCurrency(product.price)}</p>
+                  <p className={`font-bold mt-1${product.quantity != null && product.quantity === 0 ? " text-red-500 line-through" : " text-pink-600"}`}>{formatCurrency(product.price)}</p>
                   <button
                     onClick={() => handleAddToCart(product)}
-                    className="block w-full mt-2 bg-black text-white text-sm font-bold py-1.5 rounded-lg hover:bg-gray-800 transition text-center"
+                    disabled={product.quantity != null && product.quantity === 0}
+                    className={`block w-full mt-2 text-sm font-bold py-1.5 rounded-lg transition text-center${product.quantity != null && product.quantity === 0 ? " bg-gray-300 text-gray-500 cursor-not-allowed" : " bg-black text-white hover:bg-gray-800"}`}
                   >
-                    {addedId === product.id ? "✓ Added!" : "Add to Cart"}
+                    {product.quantity != null && product.quantity === 0 ? "Out of Stock" : addedId === product.id ? "✓ Added!" : "Add to Cart"}
                   </button>
                 </div>
               </div>

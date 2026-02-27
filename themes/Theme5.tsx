@@ -30,6 +30,7 @@ export default function Theme5({ store, products }: ThemeProps) {
   }, [refreshCart]);
 
   function handleAddToCart(product: Product) {
+    if (product.quantity != null && product.quantity === 0) return;
     addToCart(store.id, {
       productId: product.id,
       name: product.name,
@@ -61,7 +62,7 @@ export default function Theme5({ store, products }: ThemeProps) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
-              <div key={product.id} className="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition group">
+              <div key={product.id} className={`bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition group${product.quantity != null && product.quantity === 0 ? " opacity-70" : ""}`}>
                 <div className="bg-slate-50 h-52 relative overflow-hidden">
                   {product.image_url ? (
                     <Image src={product.image_url} alt={product.name} fill className="object-cover group-hover:scale-105 transition duration-500" />
@@ -70,6 +71,9 @@ export default function Theme5({ store, products }: ThemeProps) {
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-400 to-indigo-400 opacity-30" />
                     </div>
                   )}
+                  {product.quantity != null && product.quantity === 0 && (
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">Out of Stock</div>
+                  )}
                 </div>
                 <div className="p-5">
                   <h3 className="font-bold text-slate-900 text-lg">{product.name}</h3>
@@ -77,12 +81,13 @@ export default function Theme5({ store, products }: ThemeProps) {
                     <p className="text-slate-500 text-sm mt-1 line-clamp-2">{product.description}</p>
                   )}
                   <div className="flex items-center justify-between mt-4">
-                    <span className="text-violet-600 font-bold text-lg">{formatCurrency(product.price)}</span>
+                    <span className={`font-bold text-lg${product.quantity != null && product.quantity === 0 ? " text-red-500 line-through" : " text-violet-600"}`}>{formatCurrency(product.price)}</span>
                     <button
                       onClick={() => handleAddToCart(product)}
-                      className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition"
+                      disabled={product.quantity != null && product.quantity === 0}
+                      className={`text-sm font-semibold px-4 py-2 rounded-xl transition${product.quantity != null && product.quantity === 0 ? " bg-gray-300 text-gray-500 cursor-not-allowed" : " bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90"}`}
                     >
-                      {addedId === product.id ? "✓ Added!" : "Add to Cart"}
+                      {product.quantity != null && product.quantity === 0 ? "Out of Stock" : addedId === product.id ? "✓ Added!" : "Add to Cart"}
                     </button>
                   </div>
                 </div>

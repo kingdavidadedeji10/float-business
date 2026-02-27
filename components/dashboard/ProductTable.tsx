@@ -17,6 +17,7 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [quantity, setQuantity] = useState("0");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -31,6 +32,7 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
       price: parseFloat(price),
       description: description || null,
       image_url: imageUrl || null,
+      quantity: parseInt(quantity, 10) || 0,
     });
 
     if (error) {
@@ -43,6 +45,7 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
     setPrice("");
     setDescription("");
     setImageUrl("");
+    setQuantity("0");
     setShowForm(false);
     setSaving(false);
     onUpdate();
@@ -88,6 +91,16 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
+              placeholder="Quantity in stock"
+              min="0"
+              step="1"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <input
               type="url"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
@@ -124,6 +137,7 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
               <tr>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Product</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Price</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Stock</th>
                 <th className="text-right text-xs font-medium text-gray-500 uppercase px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -139,6 +153,13 @@ export default function ProductTable({ products, storeId, onUpdate }: ProductTab
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">{formatCurrency(product.price)}</td>
+                  <td className="px-4 py-3">
+                    {product.quantity != null && product.quantity === 0 ? (
+                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-100 text-red-700">Out of Stock</span>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-700">{product.quantity}</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => handleDelete(product.id)}
