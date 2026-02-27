@@ -180,6 +180,7 @@ export default function ProductPage() {
 
   if (!product || !store) return null;
 
+  const isOutOfStock = product.quantity != null && product.quantity === 0;
   const computedDeliveryFee = deliveryMethod === "pickup" ? 0 : deliveryFee ?? 0;
 
   return (
@@ -212,9 +213,16 @@ export default function ProductPage() {
             {product.description && (
               <p className="text-gray-500 text-sm mt-1">{product.description}</p>
             )}
-            <p className="text-indigo-600 text-2xl font-bold mt-2">
-              {formatCurrency(product.price)}
-            </p>
+            {isOutOfStock ? (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full">Out of Stock</span>
+                <p className="text-red-500 text-2xl font-bold line-through">{formatCurrency(product.price)}</p>
+              </div>
+            ) : (
+              <p className="text-indigo-600 text-2xl font-bold mt-2">
+                {formatCurrency(product.price)}
+              </p>
+            )}
           </div>
         </div>
 
@@ -295,10 +303,10 @@ export default function ProductPage() {
 
         <button
           onClick={handlePay}
-          disabled={submitting}
+          disabled={submitting || isOutOfStock}
           className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
         >
-          {submitting ? "Processing…" : `Pay ${formatCurrency(product.price * quantity + computedDeliveryFee)}`}
+          {isOutOfStock ? "Out of Stock" : submitting ? "Processing…" : `Pay ${formatCurrency(product.price * quantity + computedDeliveryFee)}`}
         </button>
       </main>
     </div>

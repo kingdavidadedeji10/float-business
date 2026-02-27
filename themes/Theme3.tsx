@@ -30,6 +30,7 @@ export default function Theme3({ store, products }: ThemeProps) {
   }, [refreshCart]);
 
   function handleAddToCart(product: Product) {
+    if (product.quantity != null && product.quantity === 0) return;
     addToCart(store.id, {
       productId: product.id,
       name: product.name,
@@ -64,15 +65,19 @@ export default function Theme3({ store, products }: ThemeProps) {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-stone-300 text-sm">No image</div>
                   )}
+                  {product.quantity != null && product.quantity === 0 && (
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">Out of Stock</div>
+                  )}
                 </div>
                 <div className="mt-3">
                   <h3 className="text-stone-800 font-medium text-sm uppercase tracking-wide">{product.name}</h3>
-                  <p className="text-stone-500 text-sm mt-1">{formatCurrency(product.price)}</p>
+                  <p className={`text-sm mt-1${product.quantity != null && product.quantity === 0 ? " text-red-500 line-through" : " text-stone-500"}`}>{formatCurrency(product.price)}</p>
                   <button
                     onClick={() => handleAddToCart(product)}
-                    className="mt-2 text-xs underline text-stone-600 hover:text-stone-900 transition"
+                    disabled={product.quantity != null && product.quantity === 0}
+                    className={`mt-2 text-xs transition${product.quantity != null && product.quantity === 0 ? " text-gray-400 cursor-not-allowed line-through" : " underline text-stone-600 hover:text-stone-900"}`}
                   >
-                    {addedId === product.id ? "✓ Added!" : "Add to Cart"}
+                    {product.quantity != null && product.quantity === 0 ? "Out of Stock" : addedId === product.id ? "✓ Added!" : "Add to Cart"}
                   </button>
                 </div>
               </div>
