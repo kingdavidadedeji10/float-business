@@ -9,6 +9,7 @@ interface CartItemProps {
   onIncrease: () => void;
   onDecrease: () => void;
   onRemove: () => void;
+  stockQuantity?: number;
 }
 
 export default function CartItem({
@@ -16,7 +17,9 @@ export default function CartItem({
   onIncrease,
   onDecrease,
   onRemove,
+  stockQuantity,
 }: CartItemProps) {
+  const atMax = stockQuantity != null && item.quantity >= stockQuantity;
   return (
     <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
       <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative">
@@ -57,10 +60,14 @@ export default function CartItem({
           </span>
           <button
             onClick={onIncrease}
-            className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition text-sm"
+            disabled={atMax}
+            className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-sm"
           >
             +
           </button>
+          {atMax && (
+            <span className="text-xs text-amber-600">Max quantity</span>
+          )}
           <button
             onClick={onRemove}
             className="ml-auto text-xs text-red-500 hover:text-red-700 transition"

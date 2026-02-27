@@ -22,7 +22,8 @@ export default function CartDrawer({
 }: CartDrawerProps) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  function handleIncrease(productId: string, currentQty: number) {
+  function handleIncrease(productId: string, currentQty: number, stockQty?: number) {
+    if (stockQty != null && currentQty >= stockQty) return;
     updateQuantity(storeId, productId, currentQty + 1);
     onCartChange();
   }
@@ -112,9 +113,10 @@ export default function CartDrawer({
                 <CartItem
                   key={`${item.productId}-${JSON.stringify(item.variants)}`}
                   item={item}
-                  onIncrease={() => handleIncrease(item.productId, item.quantity)}
+                  onIncrease={() => handleIncrease(item.productId, item.quantity, item.stockQuantity)}
                   onDecrease={() => handleDecrease(item.productId, item.quantity)}
                   onRemove={() => handleRemove(item.productId)}
+                  stockQuantity={item.stockQuantity}
                 />
               ))}
             </div>
