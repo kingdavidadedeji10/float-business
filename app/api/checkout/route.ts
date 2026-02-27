@@ -15,6 +15,10 @@ export async function POST(req: NextRequest) {
       customerPhone,
       customerEmail,
       customerAddress,
+      customerCity,
+      customerState,
+      customerPostalCode,
+      customerLandmark,
     } = await req.json();
 
     if (!productId || !storeId || !quantity || !customerName || !customerPhone) {
@@ -81,6 +85,10 @@ export async function POST(req: NextRequest) {
         customer_phone: customerPhone,
         customer_email: customerEmail || null,
         customer_address: customerAddress || null,
+        customer_city: customerCity || null,
+        customer_state: customerState || null,
+        customer_postal_code: customerPostalCode || null,
+        customer_landmark: customerLandmark || null,
         status: "pending",
       })
       .select()
