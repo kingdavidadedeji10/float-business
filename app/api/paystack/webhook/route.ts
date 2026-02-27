@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { saveOrder } from "@/lib/helpers";
+import { createServerClient } from "@/lib/supabase";
+import { bookShipment } from "@/lib/sendbox";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,68 @@ export async function POST(req: NextRequest) {
     const event = JSON.parse(rawBody);
 
     if (event.event === "charge.success") {
-      await saveOrder(event.data);
+      const reference = event.data?.reference;
+      if (!reference) {
+        return NextResponse.json({ received: true });
+      }
+
+      const supabase = createServerClient();
+
+      // Update order status to paid
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .update({ status: "paid", updated_at: new Date().toISOString() })
+        .eq("paystack_reference", reference)
+        .select()
+        .single();
+
+      if (orderError || !order) {
+        console.error("Order update error:", orderError?.message);
+        return NextResponse.json({ received: true });
+      }
+
+      // If delivery, book shipment and create delivery record
+      if (order.delivery_method === "delivery" && order.customer_address) {
+        // Fetch store for pickup address
+        const { data: store } = await supabase
+          .from("stores")
+          .select("pickup_address, name")
+          .eq("id", order.store_id)
+          .single();
+
+        // Fetch product for size category
+        const { data: product } = order.product_id
+          ? await supabase
+              .from("products")
+              .select("size_category")
+              .eq("id", order.product_id)
+              .single()
+          : { data: null };
+
+        const pickupAddress = store?.pickup_address || store?.name || "Store";
+        const sizeCategory = product?.size_category || "medium";
+
+        try {
+          const shipment = await bookShipment(
+            order.id,
+            pickupAddress,
+            order.customer_address,
+            sizeCategory
+          );
+
+          await supabase.from("deliveries").insert({
+            order_id: order.id,
+            tracking_id: shipment.trackingId,
+            courier: shipment.courier,
+            status: shipment.status,
+            pickup_address: pickupAddress,
+            delivery_address: order.customer_address,
+            estimated_delivery: sizeCategory === "large" ? "3-5 days" : "1-2 days",
+          });
+        } catch (shipmentErr) {
+          console.error("Shipment booking error:", shipmentErr);
+        }
+      }
     }
 
     return NextResponse.json({ received: true });
